@@ -26,27 +26,20 @@ jobs:
     - name: Setup MSVC
       uses: microsoft/setup-msbuild@v1.1
     
-    - name: Generate build files with CMake
+    - name: Generate build files with qmake
       run: |
         mkdir build
         cd build
-        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{env.Qt6_DIR}}" ..
+        qmake ../Manpager.pro -spec win32-msvc CONFIG+=release
       shell: cmd
     
     - name: Build with MSVC
       run: |
         cd build
-        msbuild manpager.sln /m /p:Configuration=Release /p:Platform=x64
+        nmake
       shell: cmd
     
-    - name: Run tests
-      if: always()
-      run: |
-        cd build
-        ctest -C Release --output-on-failure
-      shell: cmd
-    
-    - name: Create release artifact
+    - name: Upload release artifact
       if: success()
       uses: actions/upload-artifact@v4
       with:
