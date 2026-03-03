@@ -53,26 +53,13 @@ jobs:
         nmake
       shell: cmd
     
-    - name: List build output
-      run: |
-        echo "=== Contents of build directory ==="
-        dir /s build
-      shell: cmd
-    
     - name: Deploy Qt libraries
       run: |
-        if exist build\Manpager.exe (
-          cd build
-          windeployqt Manpager.exe
-          echo "Deployment completed successfully"
-        ) else (
-          echo "Manpager.exe not found in build directory"
-          dir build
-        )
+        cd build
+        windeployqt Manpager.exe
       shell: cmd
     
     - name: Upload release artifact
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: manpager-windows-release
