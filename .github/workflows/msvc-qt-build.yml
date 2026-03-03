@@ -2,6 +2,20 @@ name: Build with MSVC + Qt
 
 on:
   workflow_dispatch:
+    inputs:
+      qt_version:
+        description: 'Qt Version to use'
+        required: true
+        default: '6.4.0'
+        type: string
+      build_config:
+        description: 'Build Configuration'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Debug
+          - Release
   push:
     branches: [ main, develop ]
   pull_request:
@@ -17,32 +31,36 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.4.0'
+        version: ${{ inputs.qt_version || '6.4.0' }}
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         cache: 'true'
     
-    - name: Setup MSVC
-      uses: microsoft/setup-msbuild@v1.1
+    - name: Setup MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
     
     - name: Generate build files with qmake
       run: |
         mkdir build
         cd build
         qmake ../Manpager.pro -spec win32-msvc CONFIG+=release
-      shell: cmd
     
-    - name: Build with MSVC
+    - name: Build with nmake
       run: |
         cd build
         nmake
-      shell: cmd
+    
+    - name: Deploy Qt libraries
+      run: |
+        cd build/release
+        windeployqt Manpager.exe
+      continue-on-error: true
     
     - name: Upload release artifact
       if: success()
       uses: actions/upload-artifact@v4
       with:
         name: manpager-windows-release
-        path: build/Release/
+        path: build/release/
         retention-days: 30
