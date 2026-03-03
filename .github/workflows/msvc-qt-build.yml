@@ -1,0 +1,52 @@
+name: Build with MSVC + Qt
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.4.0'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        modules: 'qtbase qttools'
+        cache: 'true'
+    
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v1.1
+    
+    - name: Generate build files with CMake
+      run: |
+        mkdir build
+        cd build
+        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{env.Qt6_DIR}}" ..
+    
+    - name: Build with MSVC
+      run: |
+        cd build
+        msbuild manpager.sln /m /p:Configuration=Release /p:Platform=x64
+    
+    - name: Run tests
+      if: always()
+      run: |
+        cd build
+        ctest -C Release --output-on-failure
+    
+    - name: Create release artifact
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: manpager-windows-release
+        path: build/Release/
+        retention-days: 30
