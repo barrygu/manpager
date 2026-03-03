@@ -1,6 +1,7 @@
 name: Build with MSVC + Qt
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, develop ]
   pull_request:
