@@ -45,22 +45,26 @@ jobs:
         mkdir build
         cd build
         qmake ../Manpager.pro -spec win32-msvc CONFIG+=release
+      shell: cmd
     
     - name: Build with nmake
       run: |
         cd build
         nmake
+      shell: cmd
     
     - name: List build output
       run: |
         echo "=== Contents of build directory ==="
         dir /s build
+      shell: cmd
     
     - name: Deploy Qt libraries
       run: |
         if exist build\Manpager.exe (
           cd build
           windeployqt Manpager.exe
+          echo "Deployment completed successfully"
         ) else (
           echo "Manpager.exe not found in build directory"
           dir build
